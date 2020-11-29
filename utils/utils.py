@@ -85,11 +85,12 @@ def load_data(filename: str):
     return returns
 
 
-def visualize(experiments: dict, strategy: str, dates: list):
+def visualize(experiments: dict, strategy: str):
     models, ftpl = (
         experiments[strategy]["models"],
         experiments[strategy]["ftpl"],
     )
+    dates = ftpl.dates
     model_returns = [model.returns for model in models]
     labels = [model.label for model in models]
     # # add in ftpl
@@ -106,6 +107,8 @@ def clean_yahoo_data(filename):
     df["Unix Timestamp"] = [
         datetime.strptime(elt, "%Y-%m-%d").timestamp() for elt in df["Date"]
     ]
+    df.dropna(axis=0, how="any", inplace=True)
+    df.index = range(len(df))
     df.drop(df.columns[[i for i in range(1, 7)]], axis=1, inplace=True)
     cols = df.columns.tolist()
     cols = cols[::-1]

@@ -100,18 +100,32 @@ class Momentum(Strategy):
 
 
 class ARIMA(Strategy):
-    def __intit__(self, train_data, p, d, q):
+    def __init__(self, train_data, p, d, q):
         super().__init__(label=f"ARIMA_{p}_{d}_{q}", burn_in=max(p, d, q))
         self.train_data = train_data
-        self.p = p
-        self.d = d
-        self.q = q
+        # self.p = p
+        # self.d = d
+        # self.q = q
+        self.order = (p, d, q)
         self.initialize()
 
     def initialize(self):
         super().initialize()
-        self.arima = _ARIMA(self.train_data, order=(self.p, self.d, self.q))
-        self.fitted_model = self.arima.fit()
+        self.history = [x for x in self.train_data]
+
+    def update(self, ret):
+        """
+        Calculate the position given the return
+        :param ret: The return
+        :return: The position (-1, 0, or 1)
+        """
+        self.history.append(ret)
+        model = _ARIMA(self.history, order=self.order)
+        model_fit = model.fit()
+        output = model_fit.forecast()
+        y_hat = output[0]
+        pos = np.sign(y_hat - ret)
+        return pos
 
 
 class FTPL(Strategy):
