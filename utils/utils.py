@@ -36,7 +36,9 @@ def _get_x_dates(dates):
     return x_idx, x_dates
 
 
-def visualize_returns(dates, return_list, name_list, strategy="", black=None):
+def visualize_returns(
+    dates, return_list, name_list, stock_name="", strategy="", black=None, save=False
+):
     """
     Visualize the cumulative returns
     :param dates: The dates
@@ -44,7 +46,7 @@ def visualize_returns(dates, return_list, name_list, strategy="", black=None):
     :param name_list: List of the strategy names
     """
     x_idx, x_dates = _get_x_dates(dates)
-    plt.figure(figsize=(10, 8))
+    fig = plt.figure(figsize=(10, 8))
     for i, name in enumerate(name_list):
         if black is None or name != black:
             plt.plot(np.cumsum(return_list[i]), label=name)
@@ -52,21 +54,27 @@ def visualize_returns(dates, return_list, name_list, strategy="", black=None):
             plt.plot(np.cumsum(return_list[i]), label=name, color="k")
     plt.xticks(x_idx, x_dates, rotation=-90)
     plt.legend()
-    plt.title(f"Returns for {strategy} strategy")
+    plt.title(f"Returns for {stock_name} on {strategy} strategy")
     plt.xlabel("Date")
     plt.ylabel("Returns")
     plt.show()
+    if save:
+        fig.savefig(f"imgs/{stock_name}_ftpl_returns_{strategy}.pdf")
 
 
-def visualize_weights(dates, fpl_selection, name_list):
+def visualize_weights(
+    dates, fpl_selection, name_list, stock_name="", strategy="", save=False
+):
     x_idx, x_dates = _get_x_dates(dates)
-    plt.figure(figsize=(10, 4))
+    fig = plt.figure(figsize=(10, 4))
     for i, name in enumerate(name_list):
         plt.plot(fpl_selection[:, i], label=name)
     plt.xticks(x_idx, x_dates, rotation=-90)
     plt.legend()
-    plt.title("fpl selection")
+    plt.title(f"ftpl selection for {stock_name}")
     plt.show()
+    if save:
+        fig.savefig(f"imgs/{stock_name}_ftpl_selection_{strategy}.pdf")
 
 
 def load_data(filename: str):
@@ -85,7 +93,7 @@ def load_data(filename: str):
     return returns
 
 
-def visualize(experiments: dict, strategy: str):
+def visualize(experiments: dict, strategy: str, stock_name: str, save=False):
     models, ftpl = (
         experiments[strategy]["models"],
         experiments[strategy]["ftpl"],
@@ -97,8 +105,23 @@ def visualize(experiments: dict, strategy: str):
     model_returns.append(ftpl.returns)
     labels.append(ftpl.label)
     ftpl_selection = ftpl.selection
-    visualize_returns(dates, model_returns, labels, strategy=strategy, black="ftpl")
-    visualize_weights(dates, ftpl_selection, labels[:-1])
+    visualize_returns(
+        dates,
+        model_returns,
+        labels,
+        stock_name=stock_name,
+        strategy=strategy,
+        black="ftpl",
+        save=save,
+    )
+    visualize_weights(
+        dates,
+        ftpl_selection,
+        labels[:-1],
+        stock_name=stock_name,
+        strategy=strategy,
+        save=save,
+    )
 
 
 def clean_yahoo_data(filename):
